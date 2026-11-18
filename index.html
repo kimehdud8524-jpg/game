@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>네가 없는 세계의 로그 - Terminal</title>
+    <style>
+        body { margin: 0; background: #0a0a0c; color: #00ffcc; font-family: 'Courier New', monospace; padding: 20px; display: flex; flex-direction: column; height: 90vh; }
+        .header { display: flex; justify-content: space-between; border-bottom: 1px solid #00ffcc; padding-bottom: 10px; margin-bottom: 20px; font-size: 14px; }
+        .warning { color: #ff4757; }
+        #terminal { flex-grow: 1; background: #121216; border: 1px solid #333; padding: 15px; overflow-y: auto; font-size: 15px; line-height: 1.6; white-space: pre-wrap; box-shadow: inset 0 0 10px rgba(0,255,204,0.1); }
+        .choices { margin-top: 15px; display: flex; flex-direction: column; gap: 10px; }
+        button { background: #1e1e24; color: #00ffcc; border: 1px solid #00ffcc; padding: 12px; cursor: pointer; text-align: left; font-family: 'Courier New', monospace; font-size: 14px; transition: 0.2s; }
+        button:hover { background: #00ffcc; color: #0a0a0c; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>SYSTEM: SECURE_LOG_v0.92</div>
+        <div>배터리: <span id="battery">100</span>% | <span class="warning">추적 경고: <span id="trace">12</span>%</span></div>
+    </div>
+    <div id="terminal"></div>
+    <div class="choices" id="choicesBox"></div>
+
+    <script>
+        const terminal = document.getElementById('terminal');
+        const choicesBox = document.getElementById('choicesBox');
+        const batteryEl = document.getElementById('battery');
+        const traceEl = document.getElementById('trace');
+
+        let state = { battery: 100, trace: 12, step: 0 };
+
+        const scriptData = [
+            {
+                text: "[새벽 3시 33분]\n지하 13구역 정비실 모니터에 정체불명의 아날로그 주파수 노이즈가 유입된다.\n> \"오늘도 지상의 하늘은 유난히 푸르네... 꼭 와야 해, 시안.\"\n관리 AI 아테네가 로그 감시 프로토콜을 활성화했다.",
+                choices: [
+                    { text: "1. 주파수를 계속 청취하며 데이터 분석 시도 (추적 +15%)", next: 1, battery: -5, trace: 15 },
+                    { text: "2. 즉시 라디오 전원을 끄고 숨어 있기 (배터리 소모)", next: 2, battery: -10, trace: 2 }
+                ]
+            },
+            {
+                text: "음성 데이터의 파형을 분석하던 중, 당신의 작업대 밑바닥에서 숨겨진 구형 SSD와 마스터 키를 발견했다.\n[파일 기록]: '프로토타입 S-01, 지상 관측소로 향할 것.'\n갑자기 복도에서 치안 드론의 경고음이 울린다.",
+                choices: [
+                    { text: "1. 마스터 키를 들고 화물 열차 환풍구로 도주한다.", next: 3, battery: -15, trace: 25 },
+                    { text: "2. 기록을 포맷하고 정비공 자리에 머문다. (안전 선택)", next: 4, battery: -5, trace: 5 }
+                ]
+            },
+            {
+                text: "[엔딩 A: 지워진 로그]\n당신은 숨어 지냈으나, 아테네의 기억 정합성 검사에 걸려 모든 기억이 포맷되었습니다.\n소녀의 목소리는 영원히 지워졌습니다.",
+                choices: []
+            },
+            {
+                text: "[엔딩 B: 지상을 향한 발걸음]\n치안 드론의 포화 속에서 환풍구를 열고 지하 도시를 탈출했습니다.\n차갑고 거대한 지상의 데이터 폭풍 속으로 나아갑니다...",
+                choices: []
+            }
+        ];
+
+        function render(stepIdx) {
+            let current = scriptData[stepIdx];
+            if (!current) return;
+            terminal.innerText += "\n\n" + current.text;
+            terminal.scrollTop = terminal.scrollHeight;
+            choicesBox.innerHTML = "";
+
+            if (current.choices.length === 0) {
+                choicesBox.innerHTML = "<div style='color:#ff4757; text-align:center; font-weight:bold;'>[ 시뮬레이션 종료 ]</div>";
+                return;
+            }
+
+            current.choices.forEach(ch => {
+                let btn = document.createElement('button');
+                btn.innerText = ch.text;
+                btn.onclick = () => {
+                    state.battery = Math.max(0, state.battery + ch.battery);
+                    state.trace = Math.min(100, state.trace + ch.trace);
+                    batteryEl.innerText = state.battery;
+                    traceEl.innerText = state.trace;
+                    
+                    if (state.trace >= 100) {
+                        terminal.innerText += "\n\n[CRITICAL ERROR] 아테네 AI가 시스템을 강제 차단했습니다.";
+                        choicesBox.innerHTML = "";
+                        return;
+                    }
+                    render(ch.next);
+                };
+                choicesBox.appendChild(btn);
+            });
+        }
+
+        terminal.innerText = "초기화 완료... 로그 스트림을 수신합니다.";
+        render(0);
+    </script>
+</body>
+</html>
